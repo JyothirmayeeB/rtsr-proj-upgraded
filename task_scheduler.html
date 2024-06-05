@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dashboard with Task Scheduler</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- CSS for layout, calendar, task management, and pie chart -->
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #CFD8DC;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 15px;
+            width: 100%;
+            max-width: 1200px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .navbar img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-name {
+            margin-right: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+
+        .calendar-container,
+        .task-scheduler-container,
+        .task-tracker-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #34495e;
+            color: #fff;
+        }
+
+        .highlight-today {
+            background-color: #06d4ef;
+        }
+
+        .task-item {
+            font-weight: 500;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .task-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .completed-task {
+            text-decoration: line-through;
+            color: grey;
+            cursor: default;
+        }
+
+        .priority-high {
+            color: red;
+        }
+
+        .priority-medium {
+            color: orange;
+        }
+
+        .priority-low {
+            color: green;
+        }
+
+        .notification {
+            background-color: #e07eb3;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .task-scheduler input,
+        .task-scheduler select,
+        .task-scheduler button {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        #task-list h4 {
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .reminder-popup {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .task-datetime {
+            margin-left: 3px; /* Adjust the margin to create space between task name and date/time */
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <!-- Navigation bar -->
+        <nav class="navbar navbar-dark">
+            <a class="navbar-brand" href="#">Dashboard</a>
+            <div class="profile">
+                <span class="profile-name" id="profile-name"></span>
+                <img src="https://cdn-icons-png.flaticon.com/512/6915/6915987.png" alt="Profile">
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="calendar-container">
+            <h3>Calendar</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Sun</th>
+                        <th scope="col">Mon</th>
+                        <th scope="col">Tue</th>
+                        <th scope="col">Wed</th>
+                        <th scope="col">Thu</th>
+                        <th scope="col">Fri</th>
+                        <th scope="col">Sat</th>
+                    </tr>
+                </thead>
+                <tbody id="calendar-body">
+                    <!-- Calendar body will be generated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <header>
+            <!-- Navigation buttons -->
+            <button id="prev-month-btn">Previous Month</button>
+            <button id="next-month-btn">Next Month</button>
+        </header>
+
+        <div id="calendar">
+            <!-- Calendar will be generated here -->
+        </div>
+
+        <div class="task-tracker-container">
+            <h3>Task Tracker</h3>
+            <div class="notification" id="notification">
+                You have tasks to complete today!
+            </div>
+            <div class="pie-chart-container">
+                <canvas id="pie-chart" width="200" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Add a dialogue box -->
+        <div id="task-dialogue" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tasks for Selected Date</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span
+                            aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body">
+                          <ul id="task-list-dialogue" class="list-group">
+                              <!-- Tasks for the selected date will be displayed here -->
+                          </ul>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      
+          <div class="task-scheduler-container">
+              <div class="task-scheduler">
+                  <h3>Task Scheduler</h3>
+                  <input type="text" id="task-input" placeholder="Enter Task">
+                  <input type="datetime-local" id="task-time">
+                  <select id="task-priority">
+                      <option value="low">Low Priority</option>
+                      <option value="medium">Medium Priority</option>
+                      <option value="high">High Priority</option>
+                  </select>
+                  <button onclick="addTask()">Add Task</button>
+                  <div id="task-list"></div>
+              </div>
+          </div>
+      </div>
+      
+      <div class="reminder-popup" id="reminder-popup">
+          <p id="reminder-message"></p>
+          <button id="reschedule-btn">Reschedule</button>
+          <button id="incomplete-btn">Mark as Incomplete</button>
+      </div>
+      
+      
+      <!-- Bootstrap JS -->
+      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+      <!-- JavaScript for calendar, task management, and pie chart -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+          document.addEventListener('DOMContentLoaded', function () {
+              initCalendar();
+              highlightToday();
+              displayTasks();
+              generatePieChart();
+              checkNotifications();
+              setInterval(checkReminders, 60000); // Check every minute
+          });
+      
+          var currentYear;
+          var currentMonth;
+      
+          function initCalendar() {
+              var date = new Date();
+              currentYear = date.getFullYear();
+              currentMonth = date.getMonth();
+              generateCalendar(currentYear, currentMonth);
+      
+              document.getElementById('next-month-btn').addEventListener('click', function () {
+                  currentMonth++;
+                  if (currentMonth > 11) {
+                      currentMonth = 0;
+                      currentYear++;
+                  }
+                  generateCalendar(currentYear, currentMonth);
+              });
+      
+              document.getElementById('prev-month-btn').addEventListener('click', function () {
+                  currentMonth--;
+                  if (currentMonth < 0) {
+                      currentMonth = 11;
+                      currentYear--;
+                  }
+                  generateCalendar(currentYear, currentMonth);
+              });
+          }
+      
+          function generateCalendar(year, month) {
+              var calendarBody = document.getElementById('calendar-body');
+              calendarBody.innerHTML = '';
+      
+              var daysInMonth = new Date(year, month + 1, 0).getDate();
+              var monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
+              var dayIndex = new Date(year, month, 1).getDay();
+              var dayCount = 1;
+      
+              var row;
+      
+              var monthYearHeader = document.createElement('h2');
+              monthYearHeader.textContent = monthName + ' ' + year;
+              monthYearHeader.classList.add('text-center', 'mb-4');
+              calendarBody.appendChild(monthYearHeader);
+      
+              for (var i = 0; i < 6; i++) {
+                  row = document.createElement('tr');
+                  for (var j = 0; j < 7; j++) {
+                      var cell = document.createElement('td');
+                      if (i === 0 && j < dayIndex) {
+                          cell.textContent = '';
+                      } else if (dayCount <= daysInMonth) {
+                          cell.textContent = dayCount;
+                          cell.setAttribute('data-date', `${year}-${month + 1}-${dayCount}`);
+                          dayCount++;
+                          // Add click event listener to each cell
+                          cell.addEventListener('click', function () {
+                              var date = this.getAttribute('data-date');
+                              displayTasksForDate(date);
+                          });
+                      } else {
+                          cell.textContent = '';
+                      }
+                      row.appendChild(cell);
+                  }
+                  calendarBody.appendChild(row);
+              }
+          }
+      
+          function displayTasksForDate(date) {
+              // Implement this function to display tasks for the specified date
+              // For example, you can fetch tasks from localStorage based on the date
+              // and display them in a dialog or any other UI element
+              alert('Tasks for ' + date);
+          }
+      
+          function highlightToday() {
+              var today = new Date();
+              var dd = String(today.getDate()).padStart(2, '0');
+              var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+              var yyyy = today.getFullYear();
+              today = yyyy + '-' + mm + '-' + dd;
+              var cell = document.querySelector(`[data-date="${today}"]`);
+              if (cell) {
+                  cell.classList.add('highlight-today');
+              }
+          }
+      
+          function addTask() {
+              var taskInput = document.getElementById('task-input');
+              var taskTime = document.getElementById('task-time');
+              var taskPriority = document.getElementById('task-priority');
+      
+              var task = taskInput.value;
+              var time = taskTime.value;
+              var priority = taskPriority.value;
+      
+              if (task.trim() === '' || time.trim() === '') {
+                  alert('Please enter both task and time.');
+                  return;
+              }
+      
+              var taskItem = {
+                  task: task,
+                  time: time,
+                  priority: priority
+              };
+      
+              // Save the task to localStorage or any other data store
+              // For demonstration purpose, I'll just log the task to the console
+              console.log('Task added:', taskItem);
+      
+              // Clear input fields after adding task
+              taskInput.value = '';
+              taskTime.value = '';
+              taskPriority.value = 'low';
+      
+              displayTasks(); // Refresh task list
+              generatePieChart(); // Refresh pie chart
+              checkNotifications(); // Check for notifications
+          }
+      
+          function displayTasks() {
+              var tasks = []; // Retrieve tasks from localStorage or any other data store
+      
+              // For demonstration purpose, I'll just generate some dummy tasks
+              tasks.push({ task: 'Complete project proposal', time: '2024-05-31T10:00', priority: 'high', completed: false });
+              tasks.push({ task: 'Meeting with client', time: '2024-05-31T14:00', priority: 'medium', completed: false });
+              tasks.push({ task: 'Submit report', time: '2024-05-31T16:30', priority: 'low', completed: false });
+      
+              var taskList = document.getElementById('task-list');
+              taskList.innerHTML = '';
+      
+              tasks.forEach(function (task, index) {
+                  var taskItem = document.createElement('div');
+                  taskItem.classList.add('task-item');
+                  if (task.completed) {
+                      taskItem.classList.add('completed-task');
+                  }
+                  taskItem.textContent = task.task + ' - ' + task.time;
+                  // Add click event listener to mark task as complete
+                  taskItem.addEventListener('click', function () {
+                      tasks[index].completed = !tasks[index].completed;
+                      displayTasks(); // Refresh task list
+                      generatePieChart(); // Refresh pie chart
+                      checkNotifications(); // Check for notifications
+                  });
+                  taskList.appendChild(taskItem);
+              });
+          }
+      
+          function generatePieChart() {
+              var tasks = []; // Retrieve tasks from localStorage or any other data store
+      
+              // For demonstration purpose, I'll just generate some dummy tasks
+              tasks.push({ priority: 'high' });
+              tasks.push({ priority: 'medium' });
+              tasks.push({ priority: 'low' });
+      
+              var highPriorityCount = tasks.filter(task => task.priority === 'high').length;
+              var mediumPriorityCount = tasks.filter(task => task.priority === 'medium').length;
+              var lowPriorityCount = tasks.filter(task => task.priority === 'low').length;
+      
+              var ctx = document.getElementById('pie-chart').getContext('2d');
+              var myChart = new Chart(ctx, {
+                  type: 'pie',
+                  data: {
+                      labels: ['High Priority', 'Medium Priority', 'Low Priority'],
+                      datasets: [{
+                          data: [highPriorityCount, mediumPriorityCount, lowPriorityCount],
+                          backgroundColor: ['#ff0000', '#ffa500', '#008000'],
+                          borderWidth: 0
+                      }]
+                  },
+                  options: {
+                      responsive: false,
+                      legend: {
+                          position: 'right'
+                      }
+                  }
+              });
+          }
+      
+          function checkNotifications() {
+              var tasks = []; // Retrieve tasks from localStorage or any other data store
+      
+              // For demonstration purpose, I'll just generate some dummy tasks
+              tasks.push({ task: 'Complete project proposal', time: '2024-05-31T10:00', priority: 'high', completed: false });
+              tasks.push({ task: 'Meeting with client', time: '2024-05-31T14:00', priority: 'medium', completed: false });
+              tasks.push({ task: 'Submit report', time: '2024-05-31T16:30', priority: 'low', completed: false });
+      
+              var todayTasks = tasks.filter(task => {
+                  var today = new Date();
+                  var dd = String(today.getDate()).padStart(2, '0');
+                  var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+                  var yyyy = today.getFullYear();
+                  today = yyyy + '-' + mm + '-' + dd;
+                  return task.time.startsWith(today);
+              });
+      
+              var notification = document.getElementById('notification');
+              if (todayTasks.length > 0) {
+                  notification.style.display = 'block';
+              } else {
+                  notification.style.display = 'none';
+              }
+          }
+      
+          function checkReminders() {
+              var tasks = []; // Retrieve tasks from localStorage or any other data store
+      
+              // For demonstration purpose, I'll just generate some dummy tasks
+              tasks.push({ task: 'Complete project proposal', time: '2024-05-31T10:00', priority: 'high', completed: false });
+              tasks.push({ task: 'Meeting with client', time: '2024-05-31T14:00', priority: 'medium', completed: false });
+              tasks.push({ task: 'Submit report', time: '2024-05-31T16:30', priority: 'low', completed: false });
+      
+              tasks.forEach(task => {
+                  var taskTime = new Date(task.time);
+                  var currentTime = new Date();
+                  if (currentTime >= taskTime) {
+                      var reminderPopup = document.getElementById('reminder-popup');
+                      var reminderMessage = document.getElementById('reminder-message');
+                      reminderMessage.textContent = 'Reminder: ' + task.task + ' is overdue!';
+                      reminderPopup.style.display = 'block';
+      
+                      // Add event listeners to buttons
+                      document.getElementById('reschedule-btn').addEventListener('click', function () {
+                          // Implement rescheduling logic
+                          alert('Reschedule clicked');
+                      });
+                      document.getElementById('incomplete-btn').addEventListener('click', function () {
+                          // Implement marking task as incomplete logic
+                          alert('Mark as Incomplete clicked');
+                      });
+                  }
+              });
+          }
+      </script>
+  </body>
+
+  </html>

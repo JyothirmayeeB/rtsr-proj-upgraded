@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login/Signup</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7f7f7;
+    }
+    .login-container {
+      background-color: #fff;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <h3>Login</h3>
+  <div class="form-group">
+    <label for="login-username">Username:</label>
+    <input type="text" id="login-username" class="form-control" placeholder="Enter your username">
+  </div>
+  <button onclick="login()" class="btn btn-primary">Login</button>
+  <hr>
+  <h3>Signup</h3>
+  <div class="form-group">
+    <label for="signup-username">Username:</label>
+    <input type="text" id="signup-username" class="form-control" placeholder="Enter your username">
+  </div>
+  <button onclick="signup()" class="btn btn-success">Sign Up</button>
+</div>
+
+<script>
+  function login() {
+    var username = document.getElementById('login-username').value;
+    var users = JSON.parse(localStorage.getItem('users')) || [];
+    
+    if (username === '') {
+      alert('Please enter a username.');
+      return;
+    }
+
+    var userExists = users.includes(username);
+    if (userExists) {
+      localStorage.setItem('username', username);
+      window.location.href = 'task_scheduler.html';
+    } else {
+      alert('Username does not exist. Please sign up first.');
+    }
+  }
+
+  function signup() {
+    var username = document.getElementById('signup-username').value;
+    var users = JSON.parse(localStorage.getItem('users')) || [];
+
+    if (username === '') {
+      alert('Please enter a username.');
+      return;
+    }
+
+    if (users.includes(username)) {
+      alert('Username already exists. Please choose a different username.');
+      return;
+    }
+
+    users.push(username);
+    localStorage.setItem('users', JSON.stringify(users));
+    alert('Signup successful. You can now log in.');
+  }
+</script>
+
+</body>
+</html>
