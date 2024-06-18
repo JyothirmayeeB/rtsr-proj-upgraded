@@ -206,6 +206,8 @@
             <div>
                 <button id="prev-month">Previous Month</button>
                 <button id="next-month">Next Month</button>
+                <button onclick="generatePresentMonthChart()" class="btn btn-info">Present Month</button>
+
             </div>
             <table class="table table-bordered">
                 <thead>
@@ -335,8 +337,23 @@ function generateCalendar(year = new Date().getFullYear(), month = new Date().ge
             row.appendChild(cell);
         }
         calendarBody.appendChild(row);
+         generatePieChart(year, month);
     }
+    generatePieChart(year, month);
 }
+
+function generatePresentMonthChart() {
+    var today = new Date();
+    var currentMonth = today.getMonth(); // Months are zero-based
+    var currentYear = today.getFullYear();
+
+    // Call the generateCalendar function with the current month and year
+    generateCalendar(currentYear, currentMonth);
+
+    // Call the generatePieChart function with the current month and year
+    generatePieChart(currentYear, currentMonth);
+}
+
 
 function changeMonth(monthOffset) {
     var currentDate = new Date();
@@ -356,6 +373,8 @@ function changeMonth(monthOffset) {
     }
 
     generateCalendar(newYear, newMonth);
+
+    
 }
 
 
@@ -557,6 +576,7 @@ function checkReminders() {
                 var newTime = prompt('Enter a new time for the task (YYYY-MM-DDTHH:MM)');
                 if (newTime) {
                     task.time = newTime;
+                    task.date = newTime.split('T')[0]; // Update the date part of the task
                     localStorage.setItem('tasks', JSON.stringify(tasks));
                     displayTasks();
                     generatePieChart(); // Update pie chart for today's tasks
@@ -570,6 +590,7 @@ function checkReminders() {
         }
     });
 }
+
 
 var username = localStorage.getItem('username');
 var profileName = document.getElementById('profile-name');
